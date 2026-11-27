@@ -1,6 +1,6 @@
 # Edge Desk
 
-Demo: https://benjaminpsmith2010-byte.github.io/Edge-Desk/
+Live site: https://edge-desk.vercel.app (updates itself every morning)
 
 I started this because I wanted to know whether you can actually beat sportsbook lines with a model. (Short answer: it's really hard.) It turned into a tool that turns betting prices into probabilities, compares them to a simple ratings model, and keeps score on how my forecasts do.
 
@@ -8,7 +8,7 @@ It's plain HTML/CSS/JS with no frameworks or build step. Open `index.html` and i
 
 ## What's in it
 
-**Slate.** Upcoming NFL, NBA, NHL, Premier League, women's college hoops, and UFC. For each game I take the market's view (the data feed's win probability, plus the FanDuel price with the vig removed) and blend it with my own record-based model in log-odds. You can set how much weight the market gets.
+**Slate.** Upcoming NFL, NBA, NHL, Premier League, women's college hoops, and UFC. For each game I take the market's view (the data feed's win probability, plus the sportsbook moneyline with the vig removed) and blend it with my own record-based model in log-odds. You can set how much weight the market gets.
 
 **The model.** Each team's win % gets pulled toward .500 by adding fake average games (11 for the NFL, 12 for the NBA), so a 3-0 team doesn't come out rated like a 100% team. That gets turned into a strength in log-odds, compared head to head (log5), plus a home edge. It knows nothing about injuries, so when it disagrees a lot with the market, the market is usually right.
 
@@ -26,13 +26,14 @@ It's plain HTML/CSS/JS with no frameworks or build step. Open `index.html` and i
 index.html      layout
 css/style.css   styles
 js/core.js      all the math (odds, devig, ratings, tennis, monte carlo)
-js/data.js      slate snapshot
+js/data.js      today's slate (written by the refresh script)
+scripts/        refresh.js pulls the slate from ESPN
 js/app.js       UI
 test/           node test/core.test.js
 ```
 
 ## Notes
 
-The data is a snapshot, so the slate goes stale. I'm not betting real money with this. Books keep a margin on everything and most people lose, which is kind of what the bankroll tab shows.
+Every morning at about 6:15 a GitHub Action runs `scripts/refresh.js`, which pulls the next few days of games, records, ESPN's win probabilities and moneylines from ESPN's public scoreboard, rewrites `js/data.js` and commits it. Vercel redeploys on every commit, so the site is never more than a day old. If ESPN is down the old slate stays up. Tennis isn't in the feed; the tennis tab works from serve stats you type in. I'm not betting real money with this. Books keep a margin on everything and most people lose, which is kind of what the bankroll tab shows.
 
 Ben Smith, Georgetown Prep '28. I also co-built [Waypoint](https://waypointinternational.vercel.app).

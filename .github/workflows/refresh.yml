@@ -1,0 +1,31 @@
+name: daily slate refresh
+
+on:
+  schedule:
+    - cron: '17 11 * * *'   # 6:17 am eastern (11:17 utc), every day
+  workflow_dispatch:        # lets me run it by hand from the actions tab
+  push:
+    paths:
+      - 'scripts/refresh.js'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node test/core.test.js
+      - run: node scripts/refresh.js
+      - name: commit new slate
+        run: |
+          if git diff --quiet js/data.js; then echo "no changes"; exit 0; fi
+          git config user.name "edge-desk-bot"
+          git config user.email "edge-desk-bot@users.noreply.github.com"
+          git add js/data.js
+          git commit -m "slate refresh $(date -u +%Y-%m-%d)"
+          git push
