@@ -1,6 +1,6 @@
 # Edge Desk
 
-Live site: https://edge-desk.vercel.app (updates itself every morning)
+Live site: https://bensmith-edgedesk.vercel.app (updates itself every morning)
 
 I started this because I wanted to know whether you can actually beat sportsbook lines with a model. (Short answer: it's really hard.) It turned into a tool that turns betting prices into probabilities, compares them to a simple ratings model, and keeps score on how my forecasts do.
 
