@@ -30,7 +30,8 @@ async function get(url) {
     try {
       const r = await fetch(url, { headers: { 'user-agent': 'edge-desk (student project)' } });
       if (r.ok) return await r.json();
-    } catch (e) {}
+      console.log('  ' + r.status + ' ' + url);
+    } catch (e) { console.log('  ' + e.message + ' ' + url); }
     await new Promise(res => setTimeout(res, 1500));
   }
   return null;
@@ -130,7 +131,9 @@ async function pull([key, espnPath, days, wantPred], now, rec, books) {
   let events = [];
   for (const lg of LEAGUES) events = events.concat(await pull(lg, now, rec, books));
 
-  if (events.length === 0) { console.log('nothing came back, leaving data.js alone'); return; }
+  // if most leagues failed, keep yesterday's slate instead of posting a half-empty one
+  const got = new Set(events.map(e => e[0])).size;
+  if (got < 3) { console.log('only ' + got + ' leagues came back, leaving data.js alone'); process.exitCode = 1; return; }
   events.sort((a, b) => a[0] === b[0] ? a[1].localeCompare(b[1]) : 0);
 
   // which sportsbook espn showed for each league (usually not fanduel, so the app labels it)
