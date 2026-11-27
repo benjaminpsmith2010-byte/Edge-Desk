@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edge Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>Edge <span>Desk</span></h1>
+      <p>Find the price a bet has to beat, size it, and keep score. Works for any sport and any two-sided or three-way market.</p>
+    </div>
+    <div class="rail" aria-label="Staking settings">
+      <label class="field" for="s-bank">Bankroll ($)<input id="s-bank" inputmode="decimal"></label>
+      <label class="field" for="s-kelly">Kelly multiple<input id="s-kelly" inputmode="decimal"></label>
+      <label class="field" for="s-max">Max stake (%)<input id="s-max" inputmode="decimal"></label>
+      <label class="field" for="s-cap">Max bet ($)<input id="s-cap" inputmode="decimal"></label>
+      <label class="field" for="s-feed">Market weight (%)<input id="s-feed" inputmode="decimal"></label>
+    </div>
+  </div>
+
+  <nav class="tabs" aria-label="Views">
+    <a href="#slate">Slate</a><a href="#odds-lab">Odds lab</a><a href="#tennis">Tennis</a><a href="#bankroll">Bankroll</a><a href="#bet-log">Bet log</a>
+  </nav>
+
+  <!-- SLATE -->
+  <section class="view" id="v-slate">
+    <div class="picks">
+      <div class="pk-head"><h2>Top 3 right now</h2><p class="small muted">The three best prices on the board against the fair line, across every league. A dollar amount appears only when the fair win chance beats the price’s break-even by 2 points.</p></div>
+      <div id="picks" class="grid pk-grid"></div>
+      <p class="small muted" id="pk-note"></p>
+    </div>
+    <p class="lede">Each side shows a fair win chance and the fair price that goes with it. FanDuel’s price from the last refresh is filled in where it was available; type over it with the live price or another book’s. A bet is worth taking only when that price beats the fair price by a margin, and the stake shown follows your settings above.</p>
+    <div class="chips" id="leagues" role="group" aria-label="League"></div>
+    <div id="lgnote" class="small muted"></div>
+    <div id="events" class="grid"></div>
+    <div class="panel">
+      <h3>Add your own event</h3>
+      <p class="small muted" style="margin:4px 0 10px">Any sport. Leave the win chance blank to enter it on the card later.</p>
+      <form id="addev" class="grid cols">
+        <label class="field" for="ae-a">Side A<input id="ae-a" style="font-family:var(--body)" placeholder="Sabalenka"></label>
+        <label class="field" for="ae-b">Side B<input id="ae-b" style="font-family:var(--body)" placeholder="Swiatek"></label>
+        <label class="field" for="ae-p">Side A win chance (%)<input id="ae-p" inputmode="decimal" placeholder="optional"></label>
+        <div class="field">&nbsp;<button class="primary" type="submit">Add to slate</button></div>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>How to read the numbers</h3>
+      <ol class="rules" style="margin-top:8px">
+        <li><b>Market</b> is the average of every market signal on hand: the data feed's pregame win probability, FanDuel's price with its margin removed, and the multi-book consensus price with its margin removed.</li>
+        <li><b>Model</b> is a record-only rating: each team's win rate, pulled toward .500 by adding 11 average games (NFL) or 12 (NBA), compared head to head with a home edge. It knows nothing about injuries, quarterbacks or rest.</li>
+        <li><b>Fair</b> blends the two in log-odds at the market weight you set. When the model and the market disagree by a lot, the usual cause is news the record does not contain.</li>
+        <li><b>Value</b> appears when the fair win chance beats the price’s break-even chance by 2 points or more. Smaller gaps are inside the error of any estimate. Stake is Kelly × your multiple, capped at your max.</li>
+        <li>Where there is no feed number, enter both sides' prices from the sharpest book you can find in the Odds lab to get a no-vig line, then put that in the card's own-% box.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ODDS LAB -->
+  <section class="view" id="v-odds-lab">
+    <p class="lede">Enter the same market from several books. The lab strips out each book's margin, averages the no-vig lines into a consensus, finds the best price per outcome, and checks for an arbitrage. American (−110, +145) or decimal (1.91) both work.</p>
+    <div class="banner" id="labex">Example prices are loaded. Replace them with real ones.</div>
+    <div class="panel tblwrap">
+      <table id="labtbl"></table>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:flex-end">
+        <label class="field" for="lab-method" style="width:220px">Margin removal
+          <select id="lab-method" style="font-family:var(--body)"><option value="power">Power (shades longshots)</option><option value="mult">Proportional</option></select></label>
+        <label class="field" for="lab-total" style="width:150px">Arbitrage total stake ($)<input id="lab-total" inputmode="decimal" value="100"></label>
+        <button id="lab-clear" type="button">Clear prices</button>
+      </div>
+    </div>
+    <div id="labout" class="grid"></div>
+  </section>
+
+  <!-- TENNIS -->
+  <section class="view" id="v-tennis">
+    <p class="lede">Tennis can be priced from one statistic per player: the share of points they win on their own serve. The pricer chains points into games, tiebreaks, sets and the match, for best of three or five, before the match or from a live score. Use each player's serve-points-won % on the surface in question, adjusted for the opponent's return if you have it.</p>
+    <div class="panel grid cols" id="tn-form">
+      <label class="field" for="tn-a">Player A<input id="tn-a" style="font-family:var(--body)" value="Player A"></label>
+      <label class="field" for="tn-pa">A serve points won (%)<input id="tn-pa" inputmode="decimal" value="64"></label>
+      <label class="field" for="tn-b">Player B<input id="tn-b" style="font-family:var(--body)" value="Player B"></label>
+      <label class="field" for="tn-pb">B serve points won (%)<input id="tn-pb" inputmode="decimal" value="61"></label>
+      <label class="field" for="tn-bo">Format<select id="tn-bo" style="font-family:var(--body)"><option value="3">Best of 3</option><option value="5">Best of 5</option></select></label>
+      <label class="field" for="tn-sa">Sets A – B<span style="display:flex;gap:6px"><input id="tn-sa" inputmode="numeric" value="0" aria-label="Sets won by A"><input id="tn-sb" inputmode="numeric" value="0" aria-label="Sets won by B"></span></label>
+      <label class="field" for="tn-ga">Games this set A – B<span style="display:flex;gap:6px"><input id="tn-ga" inputmode="numeric" value="0" aria-label="Games won by A this set"><input id="tn-gb" inputmode="numeric" value="0" aria-label="Games won by B this set"></span></label>
+      <label class="field" for="tn-srv">Serving next<select id="tn-srv" style="font-family:var(--body)"><option value="a">Player A</option><option value="b">Player B</option></select></label>
+      <label class="field" for="tn-oa">Book price on A<input id="tn-oa" placeholder="-150"></label>
+      <label class="field" for="tn-ob">Book price on B<input id="tn-ob" placeholder="+130"></label>
+    </div>
+    <div class="banner">The starting numbers are placeholders, not real players. The model assumes every point on a player's serve is equally likely to be won, with a tiebreak at 6–6 in every set.</div>
+    <div id="tnout" class="grid cols"></div>
+    <div id="tnbet" class="grid"></div>
+  </section>
+
+  <!-- BANKROLL -->
+  <section class="view" id="v-bankroll">
+    <p class="lede">The same bet placed hundreds of times, 2,000 simulated seasons. Set the win rate you believe you have and the win rate you really have. Stakes follow what you believe; results follow what is true. The gap between those two numbers is where most bankrolls go.</p>
+    <div class="panel grid cols">
+      <label class="field" for="bk-start">Starting bankroll ($)<input id="bk-start" inputmode="decimal"></label>
+      <label class="field" for="bk-n">Number of bets<input id="bk-n" inputmode="numeric" value="500"></label>
+      <label class="field" for="bk-odds">Price on every bet<input id="bk-odds" value="-110"></label>
+      <label class="field" for="bk-bel">Win rate you believe (%)<input id="bk-bel" inputmode="decimal" value="55"></label>
+      <label class="field" for="bk-true">True win rate (%)<input id="bk-true" inputmode="decimal" value="53"></label>
+      <label class="field" for="bk-k">Kelly multiple<input id="bk-k" inputmode="decimal" value="0.5"></label>
+    </div>
+    <div id="bkverdict" class="verdict"></div>
+    <div class="panel">
+      <h3 id="bktitle">Bankroll over time</h3>
+      <canvas id="bkchart" role="img" aria-label="Fan chart of simulated bankroll over the run of bets"></canvas>
+      <p class="small muted">Shaded bands hold the middle 50% and middle 90% of simulated runs. The line is the median run.</p>
+    </div>
+    <div id="bktiles" class="grid cols"></div>
+  </section>
+
+  <!-- BET LOG -->
+  <section class="view" id="v-bet-log">
+    <p class="lede">Record every bet, then add the closing price once the game starts. Beating the closing price on average is the best evidence that your picks have an edge, and it shows up long before profit does.</p>
+    <div id="lgtiles" class="grid cols"></div>
+    <div class="panel">
+      <form id="logform" class="grid cols">
+        <label class="field" for="lf-pick">Pick<input id="lf-pick" style="font-family:var(--body)" placeholder="Bills ML at Jets" required></label>
+        <label class="field" for="lf-odds">Price<input id="lf-odds" placeholder="-110" required></label>
+        <label class="field" for="lf-stake">Stake ($)<input id="lf-stake" inputmode="decimal" required></label>
+        <div class="field">&nbsp;<button class="primary" type="submit">Add bet</button></div>
+      </form>
+      <p id="logerr" class="small neg" role="alert"></p>
+    </div>
+    <div class="panel tblwrap"><table id="logtbl"></table></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button id="logcopy" type="button">Copy log as CSV</button><span id="logmsg" class="small muted"></span>
+    </div>
+    <p class="small muted">The log is saved in this browser only. Copy the CSV now and then to keep a backup.</p>
+  </section>
+
+  <footer class="page"><b id="pulled"></b> Schedules, records and feed win probabilities come from the Sportradar sports feed and are frozen at that moment; games drop off the slate once they start. <span id="pxsrc"></span> Nothing here is a prediction you can rely on or financial advice. Sportsbooks keep a margin on every market and most bettors lose over time. Bet only where it is legal for you, and only money you can lose.</footer>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
