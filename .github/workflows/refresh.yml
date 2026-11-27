@@ -21,6 +21,8 @@ jobs:
           node-version: 20
       - run: node test/core.test.js
       - run: node scripts/refresh.js
+        env:
+          DEBUG: ${{ github.event_name == 'push' && '1' || '' }}
       - name: commit new slate
         run: |
           if git diff --quiet js/data.js; then echo "no changes"; exit 0; fi

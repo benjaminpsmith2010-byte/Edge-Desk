@@ -76,11 +76,15 @@ async function predictor(espnPath, id) {
 }
 
 async function pull([key, espnPath, days, wantPred], now, rec, books) {
-  const end = new Date(now.getTime() + days * 864e5);
-  const data = await get(BASE + espnPath + '/scoreboard?limit=200&dates=' + ymd(now) + '-' + ymd(end));
-  if (!data || !data.events) { console.log(key + ': no response, skipped'); return []; }
+  // one request per day (espn 400s on date ranges for some leagues)
+  const seen = new Set(), list = [];
+  for (let d = 0; d <= days; d++) {
+    const data = await get(BASE + espnPath + '/scoreboard?dates=' + ymd(new Date(now.getTime() + d * 864e5)));
+    for (const ev of (data && data.events) || []) if (!seen.has(ev.id)) { seen.add(ev.id); list.push(ev); }
+  }
+  if (!list.length) { console.log(key + ': nothing back, skipped'); return []; }
   const rows = [];
-  for (const ev of data.events) {
+  for (const ev of list) {
     // ufc puts every bout in one event, everything else is one game per event
     const comps = key === 'ufc' ? (ev.competitions || []) : (ev.competitions || []).slice(0, 1);
     for (const comp of comps) {
@@ -100,6 +104,7 @@ async function pull([key, espnPath, days, wantPred], now, rec, books) {
       }
 
       const odds = (comp.odds || [])[0];
+      if (process.env.DEBUG && !rows.length) console.log('  odds sample: ' + JSON.stringify(odds || null).slice(0, 600));
       const px = [moneyline(odds, 'away'), moneyline(odds, 'home')];
       const draw = key === 'epl' ? moneyline(odds, 'draw') : null;
       if (odds && odds.provider && odds.provider.name && px.every(Boolean)) books[key] = odds.provider.name;
