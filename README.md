@@ -1,6 +1,6 @@
 # Edge Desk
 
-Demo: https://benjaminpsmith2010-byte.github.io/edge-desk/
+Demo: https://benjaminpsmith2010-byte.github.io/Edge-Desk/
 
 I started this because I wanted to know whether you can actually beat sportsbook lines with a model. (Short answer: it's really hard.) It turned into a tool that turns betting prices into probabilities, compares them to a simple ratings model, and keeps score on how my forecasts do.
 
